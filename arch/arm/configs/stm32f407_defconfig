@@ -1,0 +1,84 @@
+#
+# Automatically generated file; DO NOT EDIT.
+# rnk kernel configuration
+#
+
+#
+# Architecture configuration
+#
+CONFIG_CPU_ARM=y
+CONFIG_CPU_ARMV7=y
+CONFIG_CPU_ARM_THUMB=y
+CONFIG_CPU_ARMV7M=y
+# CONFIG_CPU_ARM_CORTEX_M3 is not set
+CONFIG_CPU_ARM_CORTEX_M4=y
+# CONFIG_CPU_ARM_CORTEX_M7 is not set
+# CONFIG_BIG_ENDIAN is not set
+CONFIG_LITTLE_ENDIAN=y
+
+#
+# Board configuration
+#
+# CONFIG_MACH_AT91 is not set
+CONFIG_MACH_STM32=y
+CONFIG_STM32F4XX=y
+
+#
+# STM32 configuration
+#
+# CONFIG_STM32F401 is not set
+CONFIG_STM32F407=y
+# CONFIG_STM32F429 is not set
+# CONFIG_STM32F746 is not set
+CONFIG_NUM_IRQS=81
+
+#
+# Kernel configuration
+#
+CONFIG_THREAD_STACK_START=0x10008000
+CONFIG_THREAD_STACK_SIZE=0x1000
+CONFIG_SCHEDULE_RR_PRIO=y
+# CONFIG_SCHEDULE_ROUND_ROBIN is not set
+# CONFIG_SCHEDULE_PRIORITY is not set
+CONFIG_THREAD_QUANTUM=150
+# CONFIG_HR_TIMER is not set
+# CONFIG_BW_DELAY is not set
+
+#
+# Drivers configuration
+#
+CONFIG_IRQ_SUBSYS=y
+# CONFIG_I2C_SUBSYS is not set
+# CONFIG_SPI_SUBSYS is not set
+# CONFIG_ILI9341 is not set
+# CONFIG_LCD_SUBSYS is not set
+CONFIG_TIMER_SUBSYS=y
+
+#
+# Memory management configuration
+#
+CONFIG_KERNEL_HEAP_START=0x20003000
+CONFIG_KERNEL_HEAP_END=0x20005000
+
+#
+# Third party configuration
+#
+
+#
+# Library configuration
+#
+CONFIG_LIBFDT=y
+
+#
+# Utility configuration
+#
+# CONFIG_UNWIND is not set
+CONFIG_USART_DEBUG=y
+# CONFIG_SWO_DEBUG is not set
+
+#
+# Debug level
+#
+# CONFIG_DEBUG is not set
+CONFIG_ERROR=y
+# CONFIG_VERBOSE is not set

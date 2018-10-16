@@ -1,0 +1,9 @@
+
+drv/irq.o
+
+
+kernel/scheduler.o kernel/thread.o kernel/ktime.o kernel/wait.o
+
+lib/string.o
+utils/utils.o
+

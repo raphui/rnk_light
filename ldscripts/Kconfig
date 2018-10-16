@@ -1,0 +1,15 @@
+menu "Memory map configuration"
+
+config TEXT_BASE
+	hex "Address for rnk text"
+
+config TEXT_SIZE
+	hex "Maximum text size"
+
+config RAM_BASE
+	hex "Address for rnk data and bss"
+
+config RAM_SIZE
+	hex "Maximum rnk ram size"
+
+endmenu

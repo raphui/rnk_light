@@ -1,0 +1,32 @@
+# Object files
+*.o
+*.ko
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+
+#Others
+*.d
+*.img
+*.bin
+*.elf
+
+
+boards/board.h
+arch/arm/armv7m/include/include
+arch/arm/include/include
+include/armv7m
+include/arch
+include/mach-stm32
