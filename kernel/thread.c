@@ -101,9 +101,9 @@ struct thread *add_thread(void (*func)(void), void *arg, unsigned int priority, 
        
 #ifdef CONFIG_MAX_THREADS
 	if (thread_count < CONFIG_MAX_THREADS)
-		thread = NULL;
-	else
 		thread  = &threads[thread_count];
+	else
+		thread = NULL;
 #else
 	thread = (struct thread *)kmalloc(sizeof(struct thread));
 #endif
@@ -161,7 +161,10 @@ void switch_thread(struct thread *thread)
 {
 	thread->state = THREAD_RUNNING;
 
-	arch_switch_context(&current_thread->arch, &thread->arch);
+	if (current_thread)
+		arch_switch_context(&current_thread->arch, &thread->arch);
+	else
+		arch_switch_context(NULL, &thread->arch);
 
 	remove_runnable_thread(thread);
 

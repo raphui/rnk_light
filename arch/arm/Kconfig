@@ -54,4 +54,7 @@ config NUM_IRQS
 config NVIC_PRIO_BITS
 	int "Number of bits for NVIC priority"
 
+config MPU
+	bool "Enable use of MPU"
+
 endmenu

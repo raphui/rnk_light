@@ -29,21 +29,15 @@ define enable_semihosting
 	monitor semihosting enable
 end
 
-define load_kernel
-	load kernel.elf
-	moni reset 0
-	c
-end
-
-define load_apps
+define load_test
 	if $argc == 0
 		print "specify apps path"
 	end
 
 	if $argc == 1
-		restore $arg0 binary 0x08020000
+		load tests/$arg0_tests/$arg0_test
+		file tests/$arg0_tests/$arg0_test
 	end
 end
 
 tar rem 127.0.0.1:2331
-file kernel.elf

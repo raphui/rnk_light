@@ -19,8 +19,7 @@ static struct isr_entry sw_isr_table[CONFIG_NUM_IRQS + 15]; // Count Cortex-M in
 typedef void (*vect)(void);
 
 vect __attribute__((__section__(".cm_isr_vector"))) cm_vector_table[] = {
-	0,
-	0,
+	Reset_Handler,
 	hardfault_handler,
 	memmanage_handler,
 	busfault_handler,

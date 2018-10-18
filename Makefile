@@ -55,7 +55,7 @@ ifeq (${MAKELEVEL}, 0)
 
 .PHONY: all clean
 
-all: conf kernel.img
+all: conf libkernel.a
 
 conf:
 	@ln -f -s $(KERNEL_BASE)/arch/arm/include $(KERNEL_BASE)/include/arch
@@ -65,22 +65,18 @@ cscope:
 	@@echo "GEN " $@
 	@cscope -b -q -k -R
 
-kernel.elf: conf config.h
+libkernel.a: conf config.h
 	rm -f objects.lst
 	rm -f extra_objects.lst
 	$(MAKE) -f tools/Makefile.common dir=. all
-	$(CC) -T$(linker_files) -o $@ \
-		`cat objects.lst | tr '\n' ' '` $(LDFLAGS)
+	 $(AR) rc -o $@ \
+		`cat objects.lst | tr '\n' ' '`
  
 include $(wildcard *.d)
  
-kernel.img: kernel.elf 
-	@@echo "OBJCOPY " $<
-	@$(OBJCOPY) kernel.elf -O binary kernel.bin
-
 clean:
 	$(MAKE) -f tools/Makefile.common dir=. $@
-	$(RM) $(OBJS) kernel.elf kernel.img
+	$(RM) $(OBJS) libkernel.a kernel.img
 	$(RM) boards/board.h
 	$(RM) include/arch
 	$(RM) include/$(ARMV)
