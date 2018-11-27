@@ -7,6 +7,7 @@
 #include <kernel/syscall.h>
 #include <kernel/ktime.h>
 #include <errno.h>
+#include <trace/SEGGER_SYSVIEW_rnk.h>
 
 #ifdef CONFIG_MAX_THREADS
 static struct thread threads[CONFIG_MAX_THREADS];
@@ -95,6 +96,58 @@ static void end_thread(void)
 	schedule_thread_stop(NULL);
 }
 
+#ifdef CONFIG_TRACE
+struct thread *add_thread_named(char *name, void (*func)(void), void *arg, unsigned int priority, int privileged)
+{
+	struct thread *thread;
+
+#ifdef CONFIG_MAX_THREADS
+	if (thread_count < CONFIG_MAX_THREADS)
+		thread  = &threads[thread_count];
+	else
+		thread = NULL;
+#else
+	thread = (struct thread *)kmalloc(sizeof(struct thread));
+#endif
+	if (!thread)
+		return NULL;
+
+	memset(thread, 0, sizeof(struct thread));
+
+	thread->state = THREAD_RUNNABLE;
+	thread->pid = thread_count;
+
+#ifdef CONFIG_SCHEDULE_PRIORITY
+	thread->priority = priority;
+#elif defined(CONFIG_SCHEDULE_ROUND_ROBIN)
+	thread->quantum = CONFIG_THREAD_QUANTUM;
+#elif defined(CONFIG_SCHEDULE_RR_PRIO)
+	thread->priority = priority;
+	thread->quantum = CONFIG_THREAD_QUANTUM;
+#endif
+
+	thread->start_stack = THREAD_STACK_START + (thread_count * THREAD_STACK_OFFSET);
+	thread->delay = 0;
+	thread->func = func;
+	strcpy(thread->name, name);
+
+	memset(&thread->arch, 0, sizeof(struct arch_thread));
+
+	wait_queue_init(&thread->wait_exit);
+
+	/* Creating thread context */
+	arch_create_context(&thread->arch, (unsigned int)thread->func, (unsigned int)&end_thread, (unsigned int *)thread->start_stack, (unsigned int )arg, privileged);
+
+	insert_thread(thread);
+
+	thread_count++;
+
+	trace_thread_create(thread);
+
+	return thread;
+}
+#endif /* CONFIG_TRACE */
+
 struct thread *add_thread(void (*func)(void), void *arg, unsigned int priority, int privileged)
 {
 	struct thread *thread;
@@ -139,6 +192,8 @@ struct thread *add_thread(void (*func)(void), void *arg, unsigned int priority, 
 
 	thread_count++;
 
+	trace_thread_create(thread);
+
 	return thread;
 }
 
@@ -169,6 +224,8 @@ void switch_thread(struct thread *thread)
 	remove_runnable_thread(thread);
 
 	current_thread = thread;
+
+	trace_sched_thread(thread);
 }
 
 struct thread *get_current_thread(void)
@@ -228,6 +285,7 @@ void insert_runnable_thread(struct thread *thread)
 {
 	insert_thread(thread);
 	thread->state = THREAD_RUNNABLE;
+	trace_thread_runnable(thread);
 }
 
 void remove_runnable_thread(struct thread *thread)

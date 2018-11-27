@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <kernel/scheduler.h>
 #include <kernel/spinlock.h>
+#include <trace/SEGGER_SYSVIEW_rnk.h>
 
 static void insert_waiting_thread(struct wait_queue *wait, struct thread *t)
 {
@@ -28,6 +29,7 @@ static void insert_waiting_thread(struct wait_queue *wait, struct thread *t)
 	}
 
 
+	trace_thread_blocked(t);
 }
 
 static void remove_waiting_thread(struct wait_queue *wait, struct thread *t)

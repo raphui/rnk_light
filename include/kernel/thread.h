@@ -49,12 +49,18 @@ struct thread
 	struct list_node node;
 	struct list_node event_node;
 	struct wait_queue wait_exit;
+#ifdef CONFIG_TRACE
+	char name[16];
+#endif /* CONFIG_TRACE */
 };
 
 void thread_init(void);
 struct thread *thread_create(void (*func)(void), void *arg, unsigned int priority);
 int thread_join(struct thread *t);
 struct thread *add_thread(void (*func)(void), void *arg, unsigned int priority, int privileged);
+#ifdef CONFIG_TRACE
+struct thread *add_thread_named(char *name, void (*func)(void), void *arg, unsigned int priority, int privileged);
+#endif /* CONFIG_TRACE */
 void switch_thread(struct thread *thread);
 struct thread *get_current_thread(void);
 struct thread *find_next_thread(void);
