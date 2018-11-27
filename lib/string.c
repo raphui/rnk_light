@@ -89,8 +89,8 @@ size_t strlen(const char *s)
 
 char *strcpy(char *dst, const char *src)
 {
-	while (*src++)
-		*dst++ = *src;
+	while (*src)
+		*dst++ = *src++;
 
 	return dst;
 }
