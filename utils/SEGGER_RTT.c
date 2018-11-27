@@ -3,13 +3,13 @@
 *                        The Embedded Experts                        *
 **********************************************************************
 *                                                                    *
-*       (c) 2014 - 2017  SEGGER Microcontroller GmbH & Co. KG        *
+*       (c) 2015 - 2017  SEGGER Microcontroller GmbH & Co. KG        *
 *                                                                    *
 *       www.segger.com     Support: support@segger.com               *
 *                                                                    *
 **********************************************************************
 *                                                                    *
-*       SEGGER RTT * Real Time Transfer for embedded targets         *
+*       SEGGER SystemView * Real-time application analysis           *
 *                                                                    *
 **********************************************************************
 *                                                                    *
@@ -52,7 +52,7 @@
 *                                                                    *
 **********************************************************************
 *                                                                    *
-*       RTT version: 6.20i                                           *
+*       SystemView version: V2.52d                                    *
 *                                                                    *
 **********************************************************************
 ---------------------------END-OF-HEADER------------------------------
@@ -60,7 +60,7 @@ File    : SEGGER_RTT.c
 Purpose : Implementation of SEGGER real-time transfer (RTT) which
           allows real-time communication on targets which support
           debugger memory accesses while the CPU is running.
-Revision: $Rev: 6852 $
+Revision: $Rev: 12706 $
 
 Additional information:
           Type "int" is assumed to be 32-bits in size
@@ -83,7 +83,7 @@ Additional information:
 ----------------------------------------------------------------------
 */
 
-#include "SEGGER_RTT.h"
+#include <trace/SEGGER_RTT.h>
 
 #include <string.h>                 // for memcpy
 
@@ -461,11 +461,11 @@ static void _WriteNoCheck(SEGGER_RTT_BUFFER_UP* pRing, const char* pData, unsign
 *    TerminalId   Terminal ID to switch to.
 */
 static void _PostTerminalSwitch(SEGGER_RTT_BUFFER_UP* pRing, unsigned char TerminalId) {
-  char ac[2];
+  unsigned char ac[2];
 
   ac[0] = 0xFFu;
   ac[1] = _aTerminalId[TerminalId];  // Caller made already sure that TerminalId does not exceed our terminal limit
-  _WriteBlocking(pRing, ac, 2u);
+  _WriteBlocking(pRing, (const char*)ac, 2u);
 }
 
 /*********************************************************************
@@ -834,9 +834,9 @@ unsigned SEGGER_RTT_WriteSkipNoLock(unsigned BufferIndex, const void* pBuffer, u
           *pDst++ = *pData++;
         } while (--Rem);
         pDst = pRing->pBuffer;
-        do {
+        while (NumBytes--) {
           *pDst++ = *pData++;
-        } while (--NumBytes);
+        };
         pRing->WrOff = WrOff;
 #else
         SEGGER_RTT_MEMCPY(pRing->pBuffer + WrOff, pData, Rem);
@@ -1282,6 +1282,27 @@ unsigned SEGGER_RTT_HasData(unsigned BufferIndex) {
 
 /*********************************************************************
 *
+*       SEGGER_RTT_HasDataUp
+*
+*  Function description
+*    Check if there is data remaining to be sent in the given buffer.
+*
+*  Return value:
+*  ==0:  No data
+*  !=0:  Data in buffer
+*
+*/
+unsigned SEGGER_RTT_HasDataUp(unsigned BufferIndex) {
+  SEGGER_RTT_BUFFER_UP* pRing;
+  unsigned                v;
+
+  pRing = &_SEGGER_RTT.aUp[BufferIndex];
+  v = pRing->RdOff;
+  return pRing->WrOff - v;
+}
+
+/*********************************************************************
+*
 *       SEGGER_RTT_AllocDownBuffer
 *
 *  Function description
@@ -1616,7 +1637,7 @@ void SEGGER_RTT_Init (void) {
 *     < 0  Error (e.g. if RTT is configured for non-blocking mode and there was no space in the buffer to set the new terminal Id)
 */
 int SEGGER_RTT_SetTerminal (char TerminalId) {
-  char                  ac[2];
+  unsigned char         ac[2];
   SEGGER_RTT_BUFFER_UP* pRing;
   unsigned Avail;
   int r;
@@ -1624,19 +1645,19 @@ int SEGGER_RTT_SetTerminal (char TerminalId) {
   INIT();
   //
   r = 0;
-  ac[0] = 0xFFU;
+  ac[0] = 0xFFu;
   if ((unsigned char)TerminalId < (unsigned char)sizeof(_aTerminalId)) { // We only support a certain number of channels
     ac[1] = _aTerminalId[(unsigned char)TerminalId];
     pRing = &_SEGGER_RTT.aUp[0];    // Buffer 0 is always reserved for terminal I/O, so we can use index 0 here, fixed
     SEGGER_RTT_LOCK();    // Lock to make sure that no other task is writing into buffer, while we are and number of free bytes in buffer does not change downwards after checking and before writing
     if ((pRing->Flags & SEGGER_RTT_MODE_MASK) == SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL) {
       _ActiveTerminal = TerminalId;
-      _WriteBlocking(pRing, ac, 2u);
+      _WriteBlocking(pRing, (const char*)ac, 2u);
     } else {                                                                            // Skipping mode or trim mode? => We cannot trim this command so handling is the same for both modes
       Avail = _GetAvailWriteSpace(pRing);
       if (Avail >= 2) {
         _ActiveTerminal = TerminalId;    // Only change active terminal in case of success
-        _WriteNoCheck(pRing, ac, 2u);
+        _WriteNoCheck(pRing, (const char*)ac, 2u);
       } else {
         r = -1;
       }
