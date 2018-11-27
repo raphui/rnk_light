@@ -40,4 +40,8 @@ config QUEUE
 	depends on MALLOC
 	bool "Enable queue primitive"
 
+config PRIORITY_INHERITANCE
+	depends on MUTEX
+	bool "Enable priority inheritance for mutex"
+
 endmenu

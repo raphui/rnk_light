@@ -39,8 +39,18 @@ int kmutex_lock(struct mutex *mutex)
 		goto err;
 	}
 
-	if (++mutex->lock > 1)
+	if (++mutex->lock > 1) {
+#ifdef CONFIG_PRIORITY_INHERITANCE
+		if (current_thread->priority > mutex->owner->priority) {
+			if (!mutex->old_prio)
+				mutex->old_prio = mutex->owner->priority;
+
+			mutex->owner->priority = current_thread->priority;
+		}
+#endif /* CONFIG_PRIORITY_INHERITANCE */
+
 		ret = wait_queue_block_irqstate(&mutex->wait, &irqstate);
+	}
 
 	mutex->owner = current_thread;
 err:
@@ -63,6 +73,14 @@ int kmutex_unlock(struct mutex *mutex)
 
 	if (mutex->owner == current_thread) {
 		mutex->owner = NULL;
+
+#ifdef CONFIG_PRIORITY_INHERITANCE
+		if (mutex->old_prio) {
+				current_thread->priority = mutex->old_prio;
+				mutex->old_prio = 0;
+		}
+#endif /* CONFIG_PRIORITY_INHERITANCE */
+
 
 		if (--mutex->lock >= 1)
 			ret = wait_queue_wake_irqstate(&mutex->wait, &irqstate);
